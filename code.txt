@@ -1,0 +1,67 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+const int buttonPin = 2;
+unsigned long lastDebounceTime = 0;
+unsigned long debounceDelay = 50;
+int lastButtonState = HIGH;
+int buttonState;
+
+unsigned long long fibonacci(int n) {
+  if (n <= 1) return n;
+  unsigned long long a = 0, b = 1, c;
+  for (int i = 2; i <= n; i++) {
+    c = a + b;
+    a = b;
+    b = c;
+  }
+  return b;
+}
+
+void setup() {
+  pinMode(buttonPin, INPUT_PULLUP);
+  lcd.init();
+  lcd.backlight();
+
+  randomSeed(analogRead(0));
+
+  lcd.setCursor(0, 0);
+  lcd.print("Press button");
+}
+
+void loop() {
+  buttonState = digitalRead(buttonPin);
+
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    if (buttonState == LOW) {  
+      lastDebounceTime = millis();
+
+      int randomNum = random(5, 31);
+
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Num: ");
+      lcd.print(randomNum);
+
+      unsigned long startTime = micros();
+      unsigned long long result = fibonacci(randomNum);
+      unsigned long endTime = micros();
+
+      float duration = (endTime - startTime) / 1000000.0;
+
+      lcd.setCursor(0, 1);
+      lcd.print("Time: ");
+      lcd.print(duration, 5);
+      lcd.print(" sec");
+
+      char buffer[21];  
+      sprintf(buffer, "%lu", (unsigned long)result);  
+      lcd.setCursor(0, 2);
+      lcd.print("Fib: ");
+      lcd.print(buffer);
+    }
+  }
+}
+
